@@ -3,23 +3,25 @@
 // System directories
 #include <mutex>
 #include <vector>
+#include <memory>
 
-// Constants
-constexpr unsigned short int FIRST_PRIME_CANDIDATE_INDEX { 1 };
+// Global constants
+constexpr unsigned int STARTING_ODD_NUMBER_INDEX { 1U };
+constexpr unsigned int PRIME_CANDIDATE_BATCH_SIZE { 1000U };
 
 class Primes
 {
 
+	// Max value to look for prime numbers
+	// 10^8 is equal to 2^26.575 (32 bits will suffice)
+	const unsigned int MAX_RANGE;
+
 	// Thread pool
 	std::vector<std::thread> threads;
 
-	// Max value to look for prime numbers
-	// 10^8 is equal to 2^26.575 (32 bits will suffice)
-	unsigned int max_range;
-	
 	// Shared index variable for primality testing
 	// All possible prime numbers are of the form: 2k + 1
-	unsigned int prime_candidate_index = FIRST_PRIME_CANDIDATE_INDEX;
+	unsigned int prime_candidate_index = STARTING_ODD_NUMBER_INDEX;
 	std::mutex prime_candidate_index_lock;
 
 	// Shared array list for found primes
@@ -31,7 +33,7 @@ class Primes
 	std::mutex sum_of_found_primes_lock;
 
 	// Helper functions
-	unsigned int getNextPrimeCandidate();
+	std::shared_ptr<unsigned int> getPrimeCandidateBatch();
 	void foundPrimesArrayListAppend(unsigned int);
 	bool primalityTest(unsigned int);
 	void findPrimes();

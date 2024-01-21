@@ -1,5 +1,6 @@
 
 // System directories
+#include <algorithm>
 #include <thread>
 #include <cmath>
 
@@ -7,9 +8,10 @@
 #include "primes.h"
 
 // Determine primes within max range and append to prime array list
-Primes::Primes(unsigned int max_range, unsigned short int n_extra_threads) : max_range(max_range), sum_of_found_primes(0)
+Primes::Primes(unsigned int max_range, unsigned short int n_extra_threads) : MAX_RANGE(max_range), sum_of_found_primes(0)
 {
 	
+
 	// Check to append the only even prime
 	if (max_range >= 2) foundPrimesArrayListAppend(2);
 
@@ -23,6 +25,9 @@ Primes::Primes(unsigned int max_range, unsigned short int n_extra_threads) : max
 	for (size_t i = 0; i < n_extra_threads; i++)
 		if (threads.at(i).joinable())
 			threads.at(i).join();
+	
+	// Theoretically already sorted, but sort the primes
+	std::sort(found_primes_array_list.begin(), found_primes_array_list.end());
 
 }
 
@@ -40,12 +45,12 @@ unsigned long long int Primes::getSumOfFoundPrimes()
 
 }
 
-// Get next prime candidate of the form: 2k + 1
-unsigned int Primes::getNextPrimeCandidate()
+// Get  prime candidate packet of the form: 2k + 1
+std::shared_ptr<unsigned int> Primes::getPrimeCandidateBatch()
 {
 
-	// Initialize with an error value
-	unsigned int next_prime_candidate = 0;
+	// Initialize return value
+	std::shared_ptr<unsigned int> prime_candidate_batch = nullptr;
 
 	prime_candidate_index_lock.lock();
 
@@ -54,8 +59,19 @@ unsigned int Primes::getNextPrimeCandidate()
 		try 
 		{
 
-			next_prime_candidate = (2 * prime_candidate_index) + 1;
-			prime_candidate_index++;
+			// Allocate batch to be returned using smart pointer for automatic deallocation once out of scope
+			prime_candidate_batch = std::shared_ptr<unsigned int>(new unsigned int[PRIME_CANDIDATE_BATCH_SIZE], std::default_delete<unsigned int[]>());
+
+
+			// Populate batch with prime candidates
+			for (size_t i = 0; i < PRIME_CANDIDATE_BATCH_SIZE; i++)
+			{
+
+				unsigned int prime_candidate = (2 * prime_candidate_index) + 1;
+				prime_candidate_batch.get()[i] = prime_candidate;
+				prime_candidate_index++;
+
+			}
 
 		}
 		catch (std::exception &e)
@@ -67,7 +83,7 @@ unsigned int Primes::getNextPrimeCandidate()
 
 	prime_candidate_index_lock.unlock();
 
-	return next_prime_candidate;
+	return prime_candidate_batch;
 
 }
 
@@ -103,22 +119,19 @@ bool Primes::primalityTest(unsigned int prime_candidate)
 {
 
 	// Initial prime factor
-	unsigned int k = FIRST_PRIME_CANDIDATE_INDEX;
-	unsigned int prime_factor = (2 * k) + 1;
-
-	// Test if candidate is divisable by 2
-	if ((prime_candidate % 2) == 0) return false;
+	unsigned int k = STARTING_ODD_NUMBER_INDEX;
+	unsigned int odd_number = (2 * k) + 1;
 
 	// Check all prime factors up to the square root of the prime candidate
 	unsigned int prime_candidate_square_root = std::sqrt(prime_candidate);
-	while (prime_factor <= prime_candidate_square_root)
+	while (odd_number <= prime_candidate_square_root)
 	{
 
-		if ((prime_candidate % prime_factor) == 0)
+		if ((prime_candidate % odd_number) == 0)
 			return false;
 
 		k++;
-		prime_factor = (2 * k) + 1;
+		odd_number = (2 * k) + 1;
 
 	}
 
@@ -131,16 +144,37 @@ bool Primes::primalityTest(unsigned int prime_candidate)
 void Primes::findPrimes() 
 {
 	
-	// Candidate to be tested
-	unsigned int prime_candidate;
+	// Break condition
+	bool max_range_exceeded = false;
 
-	// Find primes until max range is reached
-	while ((prime_candidate = getNextPrimeCandidate()) <= max_range)
+	// Find primes!
+	while (!max_range_exceeded)
 	{
 
-		// The prime test!
-		if (primalityTest(prime_candidate)) 
-			foundPrimesArrayListAppend(prime_candidate);
+		// Get batch of prime candidates to test
+		std::shared_ptr<unsigned int> prime_candidate_batch = getPrimeCandidateBatch();
+
+		for (size_t i = 0; i < PRIME_CANDIDATE_BATCH_SIZE; i++)
+		{
+
+			// Get the ith prime candidate
+			unsigned prime_candidate = prime_candidate_batch.get()[i];
+
+			// Check if candidate exceeds search range
+			if (prime_candidate > MAX_RANGE)
+			{
+
+				// Proceeding candidates also exceed..
+				max_range_exceeded = true;
+				break;
+
+			}
+
+			// The prime test!
+			if (primalityTest(prime_candidate))
+				foundPrimesArrayListAppend(prime_candidate);
+
+		}
 
 	}
 
