@@ -18,7 +18,7 @@ class Primes
 	unsigned int max_range;
 	
 	// Shared index variable for primality testing
-	// All possible prime numbers are of the form: 6k - 1
+	// All possible prime numbers are of the form: 2k + 1
 	unsigned int prime_candidate_index = FIRST_PRIME_CANDIDATE_INDEX;
 	std::mutex prime_candidate_index_lock;
 
@@ -26,8 +26,12 @@ class Primes
 	std::vector<unsigned int> found_primes_array_list;
 	std::mutex found_primes_array_list_lock;
 
+	// Shared total for sum of primes primes
+	unsigned long long int sum_of_found_primes;
+	std::mutex sum_of_found_primes_lock;
+
 	// Helper functions
-	unsigned int nextPrimeCandidate();
+	unsigned int getNextPrimeCandidate();
 	void foundPrimesArrayListAppend(unsigned int);
 	bool primalityTest(unsigned int);
 	void findPrimes();
@@ -35,9 +39,10 @@ class Primes
 	public:
 
 		// Constructor
-		Primes(double , unsigned short int);
+		Primes(unsigned int, unsigned short int);
 
 		// Getter/Setter functions
 		std::vector<unsigned int>& getFoundPrimesArrayList();
+		unsigned long long int getSumOfFoundPrimes();
 
 };
