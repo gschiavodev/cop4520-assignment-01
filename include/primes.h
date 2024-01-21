@@ -1,6 +1,7 @@
 #pragma once
 
 // System directories
+#include <thread>
 #include <mutex>
 #include <vector>
 #include <memory>
@@ -17,7 +18,7 @@ class Primes
 	const unsigned int MAX_RANGE;
 
 	// Thread pool
-	std::vector<std::thread> threads;
+	std::vector<std::unique_ptr<std::thread>> threads;
 
 	// Shared index variable for primality testing
 	// All possible prime numbers are of the form: 2k + 1

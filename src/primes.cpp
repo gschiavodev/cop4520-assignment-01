@@ -1,8 +1,6 @@
 
 // System directories
 #include <algorithm>
-#include <thread>
-#include <cmath>
 
 // Program directories
 #include "primes.h"
@@ -17,14 +15,22 @@ Primes::Primes(unsigned int max_range, unsigned short int n_extra_threads) : MAX
 
 	// Spawn n extra threads to find primes
 	for (size_t i = 0; i < n_extra_threads; i++)
-		threads.push_back(std::thread(&Primes::findPrimes, this));
+	{
+
+		// Create thread
+		std::thread* thread = new std::thread(&Primes::findPrimes, this);
+
+		// Store thread in thread pool
+		threads.push_back(std::unique_ptr<std::thread>(thread));
+
+	}
 	
 	findPrimes(); // Main thread!
 
 	// Wait for all the extra threads to finish
 	for (size_t i = 0; i < n_extra_threads; i++)
-		if (threads.at(i).joinable())
-			threads.at(i).join();
+		if (threads.at(i)->joinable())
+			threads.at(i)->join();
 	
 	// Theoretically already sorted, but sort the primes
 	std::sort(found_primes_array_list.begin(), found_primes_array_list.end());
@@ -59,9 +65,8 @@ std::shared_ptr<unsigned int> Primes::getPrimeCandidateBatch()
 		try 
 		{
 
-			// Allocate batch to be returned using smart pointer for automatic deallocation once out of scope
-			prime_candidate_batch = std::shared_ptr<unsigned int>(new unsigned int[PRIME_CANDIDATE_BATCH_SIZE], std::default_delete<unsigned int[]>());
-
+			// Allocate batch to be returned
+			prime_candidate_batch = std::shared_ptr<unsigned int>(new unsigned int[PRIME_CANDIDATE_BATCH_SIZE]);
 
 			// Populate batch with prime candidates
 			for (size_t i = 0; i < PRIME_CANDIDATE_BATCH_SIZE; i++)
