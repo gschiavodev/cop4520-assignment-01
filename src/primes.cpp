@@ -1,6 +1,7 @@
 
 // System directories
 #include <algorithm>
+#include <cmath>
 
 // Program directories
 #include "primes.h"

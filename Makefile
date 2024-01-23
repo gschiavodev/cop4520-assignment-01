@@ -1,40 +1,41 @@
 
-# Project name
-PROJECT_NAME := primes
+# Variables
+CC = gcc
+CPP = g++
 
-# Compiler
-CXX := g++
+CFLAGS = -I include
 
-# Directories
-SRC_DIR := src
-INCLUDE_DIR := include
-BIN_DIR := bin
-INT_DIR := int
+C_SRC = $(wildcard src/*.c)
+CPP_SRC = $(wildcard src/*.cpp)
+C_OBJ = $(patsubst src/%.c,int/%.o,$(C_SRC))
+CPP_OBJ = $(patsubst src/%.cpp,int/%.o,$(CPP_SRC))
 
-# Files
-SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp)
-HEADER_FILES := $(wildcard $(INCLUDE_DIR)/*.h)
-OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(INT_DIR)/%.o,$(SRC_FILES))
-BIN := $(BIN_DIR)/$(PROJECT_NAME)
+PROGRAM_NAME = primes
 
-# Compilation flags
-CXXFLAGS := -std=c++11 -I $(INCLUDE_DIR) -Wall
+BIN = bin/$(PROGRAM)
 
-# Linking flags
-LDFLAGS :=
+# Default target
+all: directories $(BIN)
 
-# Targets and rules
-all: $(BIN)
+$(BIN): $(C_OBJ) $(CPP_OBJ)
+	$(CPP) $(CFLAGS) -O2 -o $@ $^
 
-$(BIN): $(OBJ_FILES)
-	@mkdir -p $(BIN_DIR)
-	$(CXX) $^ -o $@ $(LDFLAGS)
+int/%.o: src/%.c
+	$(CC) $(CFLAGS) -c -o $@ $<
 
-$(INT_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADER_FILES)
-	@mkdir -p $(INT_DIR)
-	$(CXX) -c $< -o $@ $(CXXFLAGS)
+int/%.o: src/%.cpp
+	$(CPP) $(CFLAGS) -c -o $@ $<
+
+# Phony targets
+.PHONY: clean directories
 
 clean:
-	rm -rf $(BIN_DIR) $(INT_DIR)
+	rm -rf int bin
 
-.PHONY: all clean
+directories: int bin
+
+int:
+	mkdir -p int
+
+bin:
+	mkdir -p bin
