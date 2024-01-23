@@ -12,7 +12,7 @@ CPP_OBJ = $(patsubst src/%.cpp,int/%.o,$(CPP_SRC))
 
 PROGRAM_NAME = primes
 
-BIN = bin/$(PROGRAM)
+BIN = bin/$(PROGRAM_NAME)
 
 # Default target
 all: directories $(BIN)
