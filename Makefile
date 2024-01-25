@@ -18,13 +18,13 @@ BIN = bin/$(PROGRAM_NAME)
 all: directories $(BIN)
 
 $(BIN): $(C_OBJ) $(CPP_OBJ)
-	$(CPP) $(CFLAGS) -O2 -o $@ $^
+	$(CPP) $(CFLAGS) -std=c++11 -static -static-libgcc -static-libstdc++ -O3 -o $@ $^
 
 int/%.o: src/%.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) -static -O3 -c -o $@ $<
 
 int/%.o: src/%.cpp
-	$(CPP) $(CFLAGS) -c -o $@ $<
+	$(CPP) $(CFLAGS) -std=c++11 -static -O3 -c -o $@ $<
 
 # Phony targets
 .PHONY: clean directories
