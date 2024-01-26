@@ -9,13 +9,13 @@ Since distributing an equal number of primes to each thread does not work effici
 
 ## Run Locally
 
-To compile and run the program locally, either execute the makefile, open the visual studio project and compile in release mode, or manually compile the current state of the project with the commands below:
+To compile and run the program on on Windows, open the visual studio project and compile in release mode. On Linux or MacOS, execute the makefile or manually compile the current state of the project with the commands below:
 
 ```bash
 $ mkdir -p int
 $ mkdir -p bin
 
-$ g++ -I include -std=c++11 -static -O3 -c -o int/main.o src/main.cpp
-$ g++ -I include -std=c++11 -static -O3 -c -o int/primes.o src/primes.cpp
-$ g++ -I include -std=c++11 -static -static-libgcc -static-libstdc++ -O3 -o bin/primes int/main.o int/primes.o
+$ g++ -I include -std=c++11 -O3 -c -o int/main.o src/main.cpp
+$ g++ -I include -std=c++11 -O3 -c -o int/primes.o src/primes.cpp
+$ g++ -I include -std=c++11 -O3 -o bin/primes int/main.o int/primes.o
 ```
